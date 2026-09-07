@@ -1,0 +1,8 @@
+- Create a custom VPC: CIDR 10.0.0.0/16
+- Create 2 public subnets: 10.0.1.0/24 (us-east-1a), 10.0.2.0/24 (us-east-1b)
+- Create 2 private subnets: 10.0.3.0/24 (us-east-1a), 10.0.4.0/24 (us-east-1b)
+- Create Internet Gateway (IGW) and attach to VPC
+- Create NAT Gateway in public subnet (attach Elastic IP)
+- Configure route tables: public → 0.0.0.0/0 → IGW, private → 0.0.0.0/0 → NAT
+- Associate subnets with correct route tables
+- Configure Network ACLs and Security Groups with least-privilege rules
