@@ -19,26 +19,36 @@ accessible via HTTP from the public internet.
 
 ssh -i ~/path-to-keypairs/portfolio-key.pem ec2-user@YOUR-PUBLIC-IP
 
-# Project 3 — ALB & Auto Scaling #
+# Project 3 — Application Load Balancer & Auto Scaling #
 
 ## What I Built
 An Application Load Balancer distributing traffic across
-multiple EC2 instances managed by an Auto Scaling Group.
+multiple EC2 instances managed by an Auto Scaling Group,
+spread across 2 Availability Zones.
 
 ## Architecture
-- ALB: Internet-facing, across 2 public subnets
-- Target Group: portfolio-tg with HTTP health checks
-- Auto Scaling: min 1, desired 2, max 4 instances
-- Scaling Policy: CPU target tracking at 50%
+- ALB: Internet-facing across portfolio-public-1 and portfolio-public-2
+- Target Group: HTTP health checks on path /
+- ASG: min 1, desired 2, max 4 — spans both AZs
+- Scaling Policy: Target tracking CPU at 50%
+- Launch Template: Amazon Linux 2023, t2.micro, public IP enabled
 
 ## Security Design
-- ALB SG accepts traffic from internet on port 80/443
-- EC2 SG only accepts port 80 traffic FROM the ALB SG
-- SSH restricted to my IP only
+- ALB SG: accepts 80/443 from internet (0.0.0.0/0)
+- EC2 SG: accepts 80/443 ONLY from portfolio-alb-sg (security group chaining)
+- SSH on port 22 restricted to my IP only
+- EC2 instances not directly accessible from internet on HTTP/HTTPS
 
 ## Key Concepts Learned
-- ALB listener rules and target groups
-- Launch templates vs launch configurations
-- Target tracking vs step scaling policies
-- Security group chaining between ALB and EC2
+- Security group chaining — EC2 only accepts traffic sourced from ALB SG
+- Launch Templates define WHAT, ASG defines WHERE (subnets/AZs)
+- ELB health checks vs EC2 health checks
+- IMDSv2 token-based metadata in User Data scripts
+- Auto-assign public IP must be set in Launch Template network settings
+- ASG replaces manually managed EC2 — infrastructure is now self-healing
 
+## Problems Solved
+- 503 error caused by Apache not running — fixed via User Data
+- ALB not switching AZs — caused by only one instance registered
+- Day 3 server showing behind ALB — deregistered manually registered instance
+- Instances showing private IP only — enabled auto-assign public IP in Launch Template
